@@ -14,33 +14,42 @@ router.get("/", async (req, res) => {
         //     name:item.name,
         //     email:item.email,
         //     phone:item.phone
-
+        //1234564587485
         // }))
         let { userId } = req.query
         let query = {}
         //only wll visible the active value in user interface
-        query.isactive=constants.STATE.ACTIVE;
+        query.isactive = constants.STATE.ACTIVE;
         if (userId) query.$expr = { $eq: ["$_id", { $toObjectId: userId }] }
+//search function 
+        query.$and = [
+            { name: { $regex: req.query.name, $options: "i" } },
+            { email: { $regex: req.query.email, } }
 
-        const page=req.query.page ||1;
-        const limit=5
-        
+        ]
+
+        const page = req.query.page || 1;
+        const limit = 5
+
         let userData = await userModel.aggregate([
-        {
-            $match: query
-        },
-        {
-            //sorting the created account 
-            $sort: { createdAt: -1 }
-        },
-        {
-            $skip:(page-1)*SVGFEDiffuseLightingElement,
-        },
-        {
-            $project:{__v:0,updatedAt:0,createdAt:0}
-        }])
-        userData=userData.map((ele)=>{
-            return {...ele,profile:`/uploads/Profiles/  `+ele.profile}
+            {
+                $match: query
+            },
+            {
+                //sorting the created account 
+                $sort: { createdAt: -1 }
+            },
+            {
+                $skip: (page - 1) * limit,
+            },
+            {
+                $limit: limit,
+            },
+            {
+                $project: { __v: 0, updatedAt: 0, createdAt: 0 }
+            }])
+        userData = userData.map((ele) => {
+            return { ...ele, profile: `/uploads/Profiles/  ` + ele.profile }
         })
         return send(res, RESPONSE.SUCCESS, userData)
     } catch (error) {
